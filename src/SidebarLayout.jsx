@@ -11,9 +11,9 @@ export default function SidebarLayout() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="flex fade-delay">
+    <div className="flex fade-delay h-screen">
       {/* Sidebar */}
-      <div className="w-64 min-h-screen text-white p-4 bg-gray-800">
+      <div className="w-64 min-h-screen text-white p-4 bg-gray-800 overflow-y-auto  custom-scrollbar-Home"> 
         <h2 className="text-2xl font-bold mb-6 text-center">Visualizer</h2>
 
         {/* Sorting Menu */}
@@ -215,7 +215,7 @@ export default function SidebarLayout() {
       </div>
 
       {/* Render child route here */}
-      <div className="flex-1 p-10 bg-[#232323]">
+      <div className="flex-1 p-10 overflow-y-auto bg-[#232323] custom-scrollbar-Home">
         <Outlet />
       </div>
     </div>

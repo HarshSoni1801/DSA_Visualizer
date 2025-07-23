@@ -119,9 +119,9 @@ const HomePage = () => {
       </div>
 
       <footer className="mt-10 text-center text-gray-400">
-        <p>&copy; {new Date().getFullYear()} Data Structures Visualizer</p>
-        <p>Created by Harsh Soni</p>
-        <a href="">Github Link</a>
+        <p className="mb-2">&copy; {new Date().getFullYear()} Data Structures Visualizer</p>
+        <p className="mb-2">Created by Harsh Soni</p>
+        <a href="https://github.com/HarshSoni1801/DSA_Visualizer" target="_blank" className="font-bold">Github Link</a>
       </footer>
     </div>
   );
