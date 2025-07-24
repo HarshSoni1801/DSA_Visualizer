@@ -43,7 +43,8 @@ const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-white p-6 background fade-delay">
       <header className="text-center mb-10">
-        <h1 className="text-6xl font-bold mb-4">Data Structures Visualizer</h1>
+        <h1 className="text-7xl font-bold mb-4"> SortSight</h1>
+        <h2 className="text-3xl font-bold mb-4">A Data Structures Visualizer</h2>
         <p className="text-lg text-gray-300 max-w-3xl mx-auto">
           An interactive tool for learning and understanding data structures through
           animated visualizations and step-by-step operations.
