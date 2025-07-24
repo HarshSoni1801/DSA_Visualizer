@@ -9,7 +9,8 @@ export default function SelectionSort() {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState("Slow");
   const [minIndex, setMinIndex] = useState(null);
-
+  const [customMode, setCustomMode] = useState(false);
+  const [tempValues, setTempValues] = useState(Array(6).fill(""));
   const pausedRef = useRef(paused);
   const speedRef = useRef(speed);
 
@@ -61,7 +62,22 @@ export default function SelectionSort() {
 
   async function selectionSort() {
     setSorting(true);
-    const arr = [...array];
+    let arr = [...array];
+
+    if (customMode) {
+      if (tempValues.some(val => val === "")) {
+        setError("Please fill all values");
+        setTimeout(() => setError(""), 3000);
+        return;
+      }
+    
+      const numericValues = tempValues.map(val => Number(val));
+      setArray(numericValues); // still updates state for visualization
+      arr = numericValues; // use this immediately
+      setCustomMode(false);
+    }
+
+
     for (let i = 0; i < arr.length - 1; i++) {
       let min = i;
       setMinIndex(min);
@@ -92,7 +108,17 @@ export default function SelectionSort() {
     setMinIndex(null);
     setSorting(false);
   }
+  function enableCustomMode() {
+    setCustomMode(true);
+    setTempValues(Array(size).fill(""));
+    setActiveIndices([]);
+  }
 
+  function handleCustomValueChange(index, value) {
+    const newValues = [...tempValues];
+    newValues[index] = value;
+    setTempValues(newValues);
+  }
   return (
     <div className="text-white w-full fade-delay">
       <h1 className="text-5xl font-bold mb-20">Selection Sort Visualization</h1>
@@ -118,7 +144,13 @@ export default function SelectionSort() {
         >
           Randomize Array
         </button>
-  
+        <button
+          onClick={enableCustomMode}
+          className="bg-purple-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
+          disabled={sorting || customMode}
+        >
+          Custom Values
+        </button>
         <button
           onClick={selectionSort}
           className="bg-green-500 px-4 py-2 rounded text-white font-semibold hover:bg-green-600 transition-colors duration-200 cursor-pointer"
@@ -160,7 +192,21 @@ export default function SelectionSort() {
         <div className="flex justify-center items-end gap-5 mt-20">
           {array.map((num, idx) => (
             <div key={idx} className="relative flex flex-col items-center">
-              {minIndex === idx && (
+              {customMode ? (
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 bg-blue-500`}
+                style={{ width: "4.5rem", height: "4.5rem" }}
+              >
+                <input
+                  type=""
+                  value={tempValues[idx] || ""}
+                  onChange={(e) => handleCustomValueChange(idx, e.target.value)}
+                  className="w-full h-full bg-transparent border-none text-center text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                  style={{ fontSize: "1.5rem" }}
+                  autoFocus={idx === 0}
+                />
+              </div>
+              ) :(<>{minIndex === idx && (
                 <div className="absolute bottom-full mb-2 text-blue-400 font-bold text-2xl">
                   Min
                 </div>
@@ -177,8 +223,8 @@ export default function SelectionSort() {
                 }`}
               >
                 {num}
-              </div>
-  
+              </div></>
+              )}
               {activeIndices.includes(idx) && (
                 <div className="absolute top-full mt-1 flex flex-col items-center text-yellow-400">
                   <div className="text-2xl font-bold">

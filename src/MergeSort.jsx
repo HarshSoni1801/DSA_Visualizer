@@ -5,6 +5,8 @@ export default function MergeSortVisualizer() {
   const [steps, setSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [size, setSize] = useState(6);
+  const [customMode, setCustomMode] = useState(false);
+  const [tempValues, setTempValues] = useState(Array(6).fill(""));
 
   useEffect(() => {
     generateRandomArray(size);
@@ -18,7 +20,19 @@ export default function MergeSortVisualizer() {
   };
 
   const handleStart = () => {
-    const arrCopy = [...array];
+    let arrCopy = [...array];
+    if (customMode) {
+      if (tempValues.some(val => val === "")) {
+        setError("Please fill all values");
+        setTimeout(() => setError(""), 3000);
+        return;
+      }
+    
+      const numericValues = tempValues.map(val => Number(val));
+      setArray(numericValues); // still updates state for visualization
+      arrCopy = numericValues; // use this immediately
+      setCustomMode(false);
+    }
     const newSteps = [];
 
     newSteps.push({
@@ -104,8 +118,28 @@ export default function MergeSortVisualizer() {
       return (
         <div className="flex justify-center gap-5 mb-4">
           {array.map((num, idx) => (
-            <div key={idx} className="w-18 h-18 flex items-center justify-center rounded bg-blue-500 text-white font-bold text-xl transition-all duration-200 text-outline">
-              {num}
+            <div key={idx}>
+              {customMode ? (
+                <div
+                  className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 bg-blue-500`}
+                  style={{ width: "4.5rem", height: "4.5rem" }}
+                >
+                  <input
+                    type=""
+                    value={tempValues[idx] || ""}
+                    onChange={(e) => handleCustomValueChange(idx, e.target.value)}
+                    className="w-full h-full bg-transparent border-none text-center text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                    style={{ fontSize: "1.5rem" }}
+                    autoFocus={idx === 0}
+                  />
+                </div>
+              ) : (
+                <div className="w-18 h-18 flex items-center justify-center rounded bg-blue-500 text-white font-bold text-xl transition-all duration-200 text-outline"
+                  style={{ width: "4.5rem", height: "4.5rem" }}
+                >
+                  {num}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -203,7 +237,16 @@ export default function MergeSortVisualizer() {
       </div>
     );
   };
+  function enableCustomMode() {
+    setCustomMode(true);
+    setTempValues(Array(size).fill(""));
+  }
 
+  function handleCustomValueChange(index, value) {
+    const newValues = [...tempValues];
+    newValues[index] = value;
+    setTempValues(newValues);
+  }
   return (
     <div className="min-h-screen text-white fade-delay">
       <h1 className="text-5xl font-bold mb-20">Merge Sort Visualization</h1>
@@ -223,6 +266,13 @@ export default function MergeSortVisualizer() {
           className="bg-yellow-500 px-4 py-2 rounded text-white font-semibold hover:bg-yellow-600 transition-colors duration-200 cursor-pointer"
         >
           Randomize Array
+        </button>
+        <button
+          onClick={enableCustomMode}
+          className="bg-purple-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
+          disabled={customMode}
+        >
+          Custom Values
         </button>
         <button
           onClick={handleStart}

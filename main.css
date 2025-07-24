@@ -152,9 +152,3 @@
 .custom-scrollbar-Home::-webkit-scrollbar {
   display: none;
 }
-@font-face {
-  font-family: 'Elianto';
-  src: url('/fonts/Elianto-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}

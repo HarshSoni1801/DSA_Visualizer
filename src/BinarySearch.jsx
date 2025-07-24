@@ -13,6 +13,8 @@ export default function BinarySearch() {
   const [error, setError] = useState("");
   const [subArray, setSubArray] = useState([]);
   const [history, setHistory] = useState([]);
+  const [customMode, setCustomMode] = useState(false);
+  const [tempValues, setTempValues] = useState(Array(6).fill(""));
   const pausedRef = useRef(paused);
   const speedRef = useRef(speed);
 
@@ -60,9 +62,9 @@ export default function BinarySearch() {
   function getSpeedDelay() {
     switch (speedRef.current) {
       case "Fast": return 200;
-      case "Slow": return 1500;
+      case "Slow": return 2000;
       case "Normal":
-      default: return 600;
+      default: return 1000;
     }
   }
 
@@ -72,21 +74,35 @@ export default function BinarySearch() {
       setTimeout(() => setError(""), 3000);
       return;
     }
+    let targetArray = array;
 
+    if (customMode) {
+      if (tempValues.some(val => val === "")) {
+        setError("Please fill all values");
+        setTimeout(() => setError(""), 3000);
+        return;
+      }
+    
+      const numericValues = tempValues.map(val => Number(val)).sort((a, b) => a - b);
+      setArray(numericValues); // still updates state for visualization
+      targetArray = numericValues; // use this immediately
+      setCustomMode(false);
+    }
+    
     setSearching(true);
     setFoundIndex(-1);
     setNotFound(false);
     setHistory([]);
-    
+  
     let start = 0;
-    let end = array.length - 1;
+    let end = targetArray.length - 1;
     const searchHistory = [];
 
     while (start <= end) {
       await checkPaused();
       
       const mid = Math.floor((start + end) / 2);
-      const currentSubArray = array.slice(start, end + 1);
+      const currentSubArray = targetArray.slice(start, end + 1);
       
       setActiveIndices({ start, mid, end });
       setSubArray(currentSubArray);
@@ -97,20 +113,20 @@ export default function BinarySearch() {
         mid,
         end,
         subArray: currentSubArray,
-        valueAtMid: array[mid],
-        comparison: `Comparing ${key} with ${array[mid]}`
+        valueAtMid: targetArray[mid],
+        comparison: `Comparing ${key} with ${targetArray[mid]}`
       };
       searchHistory.push(step);
       setHistory([...searchHistory]);
       
       await sleep(getSpeedDelay());
       
-      if (array[mid] == key) {
+      if (targetArray[mid] == key) {
         setFoundIndex(mid);
         setActiveIndices({ start: -1, mid: -1, end: -1 });
         setSearching(false);
         return;
-      } else if (array[mid] < key) {
+      } else if (targetArray[mid] < key) {
         start = mid + 1;
       } else {
         end = mid - 1;
@@ -123,7 +139,18 @@ export default function BinarySearch() {
     setNotFound(true);
     setSearching(false);
   }
+  function enableCustomMode() {
+    setCustomMode(true);
+    setTempValues(Array(size).fill(""));
+    setFoundIndex(-1);
+    setActiveIndex(-1);
+  }
 
+  function handleCustomValueChange(index, value) {
+    const newValues = [...tempValues];
+    newValues[index] = value;
+    setTempValues(newValues);
+  }
   return (
     <div className="text-white w-full fade-delay">
       <h1 className="text-5xl font-bold mb-20">Binary Search Visualization</h1>
@@ -150,6 +177,13 @@ export default function BinarySearch() {
           Randomize Array
         </button>
 
+        <button
+          onClick={enableCustomMode}
+          className="bg-purple-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
+          disabled={searching || customMode}
+        >
+          Custom Values
+        </button>
         <div className="flex items-center gap-2">
           <label className="font-medium">Key:</label>
           <input
@@ -225,6 +259,9 @@ export default function BinarySearch() {
       )}
 
       {/* Full Array Visualization */}
+      {
+        customMode && <p className="text-center text-gray-300">The Input Array will be sorted Automatically</p>
+      }
       <div className="flex justify-center items-end gap-5 mt-20 relative">
         {array.map((num, idx) => {
           const isInCurrentRange = idx >= activeIndices.start && idx <= activeIndices.end;
@@ -235,6 +272,21 @@ export default function BinarySearch() {
           return (
             <div key={idx} className="relative flex flex-col items-center">
               {/* Block */}
+              {customMode ? (
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 bg-blue-500`}
+                style={{ width: "4.5rem", height: "4.5rem" }}
+              >
+                <input
+                  type=""
+                  value={tempValues[idx] || ""}
+                  onChange={(e) => handleCustomValueChange(idx, e.target.value)}
+                  className="w-full h-full bg-transparent border-none text-center text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                  style={{ fontSize: "1.5rem" }}
+                  autoFocus={idx === 0}
+                />
+              </div>
+            ) : (
               <div
                 className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl transition-all duration-200 ${
                   foundIndex === idx ? "bg-green-500 scale-125 animate-pulse"
@@ -248,6 +300,7 @@ export default function BinarySearch() {
               >
                 {num}
               </div>
+            )}
 
               {/* Indicators below each block */}
               <div className="absolute top-full mt-1 flex gap-1">
@@ -260,6 +313,14 @@ export default function BinarySearch() {
         })}
       </div>
 
+      {/* Not Found Message */}
+      {notFound && (
+        <div className="text-center mt-8">
+          <div className="text-3xl font-bold text-red-500 animate-pulse">
+            Element not found in the array!
+          </div>
+        </div>
+      )}
       {/* Search History */}
       {history.length > 0 && (
         <div className="mt-12 mx-auto max-w-4xl">
@@ -293,14 +354,6 @@ export default function BinarySearch() {
         </div>
       )}
 
-      {/* Not Found Message */}
-      {notFound && (
-        <div className="text-center mt-8">
-          <div className="text-3xl font-bold text-red-500 animate-pulse">
-            Element not found in the array!
-          </div>
-        </div>
-      )}
 
       {/* Algorithm Information */}
       <div className="mt-40 px-6 md:px-20 text-white max-w-6xl mx-auto">

@@ -4,13 +4,15 @@ export default function LinearSearch() {
   const [array, setArray] = useState([]);
   const [size, setSize] = useState(6);
   const [searching, setSearching] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1); // to highlight current comparison
-  const [foundIndex, setFoundIndex] = useState(-1); // to mark found element
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [foundIndex, setFoundIndex] = useState(-1);
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState("Slow");
   const [key, setKey] = useState("");
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState("");
+  const [customMode, setCustomMode] = useState(false);
+  const [tempValues, setTempValues] = useState(Array(6).fill(""));
   const pausedRef = useRef(paused);
   const speedRef = useRef(speed);
 
@@ -22,14 +24,18 @@ export default function LinearSearch() {
     setArray(temp);
     setFoundIndex(-1);
     setActiveIndex(-1);
+    setCustomMode(false);
   }
 
   useEffect(() => {
     generateArray(size);
+    setTempValues(Array(size).fill(""));
   }, [size]);
+
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+
   useEffect(() => {
     speedRef.current = speed;
   }, [speed]);
@@ -41,6 +47,7 @@ export default function LinearSearch() {
       }, ms);
     });
   }
+
   function checkPaused() {
     return new Promise((res) => {
       const interval = setInterval(() => {
@@ -51,6 +58,7 @@ export default function LinearSearch() {
       }, 100);
     });
   }
+
   function getSpeedDelay() {
     switch (speedRef.current) {
       case "Fast":
@@ -64,40 +72,65 @@ export default function LinearSearch() {
   }
 
   async function linearSearch() {
-   if (!key) {
+    if (!key) {
       setError("Please enter a key to search");
-      setTimeout(() => setError(""), 3000); // Clear error after 3 seconds
+      setTimeout(() => setError(""), 3000);
       return;
     }
+
+    if (customMode) {
+      if (tempValues.some(val => val === "")) {
+        setError("Please fill all values");
+        setTimeout(() => setError(""), 3000);
+        return;
+      }
+      const numericValues = tempValues.map(val => Number(val));
+      setArray(numericValues);
+      setCustomMode(false);
+      await sleep(100);
+    }
+    setSearching(true);
+    setFoundIndex(-1);
+    setNotFound(false);
+    const arr = customMode ? tempValues.map(Number) : [...array];
+    console.log(arr);
    
-   setSearching(true);
-   setFoundIndex(-1);
-   setNotFound(false); // Reset not found state
-   const arr = [...array];
-   
-   for (let i = 0; i < arr.length; i++) {
-     await checkPaused();
-     setActiveIndex(i);
-     await sleep(getSpeedDelay());
+    for (let i = 0; i < arr.length; i++) {
+      await checkPaused();
+      setActiveIndex(i);
+      await sleep(getSpeedDelay());
      
-     if (arr[i] == key) {
-       setFoundIndex(i);
-       setActiveIndex(-1);
-       setSearching(false);
-       return;
-     }
-   }
+      if (arr[i] == key) {
+        setFoundIndex(i);
+        setActiveIndex(-1);
+        setSearching(false);
+        return;
+      }
+    }
    
-   setActiveIndex(-1);
-   setNotFound(true); // Set not found when loop completes
-   setSearching(false);
- }
+    setActiveIndex(-1);
+    setNotFound(true);
+    setSearching(false);
+  }
+
+  function enableCustomMode() {
+    setCustomMode(true);
+    setTempValues(Array(size).fill(""));
+    setFoundIndex(-1);
+    setActiveIndex(-1);
+  }
+
+  function handleCustomValueChange(index, value) {
+    const newValues = [...tempValues];
+    newValues[index] = value;
+    setTempValues(newValues);
+  }
 
   return (
     <div className="text-white w-full fade-delay">
       <h1 className="text-5xl font-bold mb-20">Linear Search Visualization</h1>
 
-      {/* Controls */}
+      {/* Controls - completely unchanged layout */}
       <div className="flex items-center gap-4 mb-6 flex-wrap justify-center">
         <label className="font-medium">Size:</label>
         <input
@@ -106,7 +139,7 @@ export default function LinearSearch() {
           max="8"
           value={size}
           onChange={(e) => setSize(Number(e.target.value))}
-          disabled={searching}
+          disabled={searching || customMode}
           className="accent-blue-600"
         />
         <span className="w-10">{size}</span>
@@ -114,9 +147,17 @@ export default function LinearSearch() {
         <button
           onClick={() => generateArray(size)}
           className="bg-yellow-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
-          disabled={searching}
+          disabled={searching || customMode}
         >
           Randomize Array
+        </button>
+
+        <button
+          onClick={enableCustomMode}
+          className="bg-purple-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
+          disabled={searching || customMode}
+        >
+          Custom Values
         </button>
 
         <div className="flex items-center gap-2">
@@ -137,11 +178,13 @@ export default function LinearSearch() {
         >
           Search
         </button>
+        
         {error.length>0 && (
-            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-lg animate-bounce">
-               {error}
-            </div>
-         )}
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-lg animate-bounce">
+            {error}
+          </div>
+        )}
+        
         Speed:
         <select
           value={speed}
@@ -164,26 +207,40 @@ export default function LinearSearch() {
         </button>
       </div>
 
-      {/* Number Blocks */}
+      {/* Number Blocks - only changed the custom mode inputs */}
       <div className="flex justify-center items-end gap-5 mt-20 relative">
         {array.map((num, idx) => (
           <div key={idx} className="relative flex flex-col items-center">
-            {/* Block */}
-            <div
-              className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 ${
-                activeIndex === idx
-                  ? "bg-red-500 scale-110"
-                  : foundIndex === idx
-                  ? "bg-green-500 scale-125 animate-pulse"
-                  : "bg-blue-500"
-              }`}
-              style={{ width: "4.5rem", height: "4.5rem" }}
-            >
-              {num}
-            </div>
+            {customMode ? (
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 bg-blue-500`}
+                style={{ width: "4.5rem", height: "4.5rem" }}
+              >
+                <input
+                  type=""
+                  value={tempValues[idx] || ""}
+                  onChange={(e) => handleCustomValueChange(idx, e.target.value)}
+                  className="w-full h-full bg-transparent border-none text-center text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                  style={{ fontSize: "1.5rem" }}
+                  autoFocus={idx === 0}
+                />
+              </div>
+            ) : (
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 ${
+                  activeIndex === idx
+                    ? "bg-red-500 scale-110"
+                    : foundIndex === idx
+                    ? "bg-green-500 scale-125 animate-pulse"
+                    : "bg-blue-500"
+                }`}
+                style={{ width: "4.5rem", height: "4.5rem" }}
+              >
+                {num}
+              </div>
+            )}
 
-            {/* Pointer absolutely positioned below */}
-            {activeIndex === idx && (
+            {!customMode && activeIndex === idx && (
               <div className="absolute top-full mt-1 flex flex-col items-center text-yellow-400">
                 <div className="text-2xl font-bold">i</div>
                 <div className="text-xl text-white mt-1 font-semibold">
@@ -191,7 +248,7 @@ export default function LinearSearch() {
                 </div>
               </div>
             )}
-            {foundIndex === idx && (
+            {!customMode && foundIndex === idx && (
               <div className="absolute top-full mt-1 flex flex-col items-center text-green-400">
                 <div className="text-2xl font-bold">Found!</div>
               </div>
@@ -199,22 +256,21 @@ export default function LinearSearch() {
           </div>
         ))}
       </div>
-        {notFound && (
-           <div className="text-center mt-8">
-              <div className="text-3xl font-bold text-red-500 animate-pulse">
-                 Element not found in the array!
-              </div>
-           </div>
-           )}
+      {notFound && (
+        <div className="text-center mt-8">
+          <div className="text-3xl font-bold text-red-500 animate-pulse">
+            Element not found in the array!
+          </div>
+        </div>
+      )}
 
+      {/* Algorithm explanation section - COMPLETELY UNCHANGED */}
       <div className="mt-40 px-6 md:px-20 text-white max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold border-b-2 border-gray-600 pb-2 mb-8">
           About Linear Search
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Left Column: Algorithm, Time & Space Complexity, Learn More */}
           <div className="space-y-15">
-            {/* Algorithm Steps */}
             <div>
               <h3 className="text-xl font-semibold mb-2">Algorithm:</h3>
               <ul className="list-disc pl-6 text-gray-200 space-y-1 text-base">
@@ -226,7 +282,6 @@ export default function LinearSearch() {
               </ul>
             </div>
 
-            {/* Time Complexity */}
             <div>
               <h3 className="text-xl font-semibold">Time Complexity:</h3>
               <ul className="list-disc pl-6 text-gray-200">
@@ -244,7 +299,6 @@ export default function LinearSearch() {
               </ul>
             </div>
 
-            {/* Space Complexity */}
             <div>
               <h3 className="text-xl font-semibold">Space Complexity:</h3>
               <p className="text-base text-gray-200">
@@ -252,7 +306,6 @@ export default function LinearSearch() {
               </p>
             </div>
 
-            {/* Learn More */}
             <div>
               <a
                 href="https://www.geeksforgeeks.org/linear-search/"
@@ -265,7 +318,6 @@ export default function LinearSearch() {
             </div>
           </div>
 
-          {/* Right Column: C++ Code */}
           <div>
             <h3 className="text-xl font-semibold mb-2">C++ Code:</h3>
             <pre className="bg-gray-900 rounded p-4 overflow-x-auto text-sm text-green-200">

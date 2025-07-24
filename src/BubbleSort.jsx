@@ -8,6 +8,8 @@ export default function BubbleSort(){
   const [paused,setPaused]=useState(false);
   const [speed, setSpeed] = useState("Slow");
   const [swappingIndices,setSwappingIndices]=useState([]);
+  const [customMode, setCustomMode] = useState(false);
+  const [tempValues, setTempValues] = useState(Array(6).fill(""));
   const pausedRef=useRef(paused);
   const speedRef = useRef(speed);
 
@@ -58,7 +60,21 @@ export default function BubbleSort(){
   }
   async function bubbleSort(){
     setSorting(true);
-    const arr = [...array];
+    let arr = [...array];
+
+    if (customMode) {
+      if (tempValues.some(val => val === "")) {
+        setError("Please fill all values");
+        setTimeout(() => setError(""), 3000);
+        return;
+      }
+    
+      const numericValues = tempValues.map(val => Number(val));
+      setArray(numericValues); // still updates state for visualization
+      arr = numericValues; // use this immediately
+      setCustomMode(false);
+    }
+
     for (let i = 0; i < arr.length - 1; i++) {
       for (let j = 0; j < arr.length - i - 1; j++) {
         await checkPaused();
@@ -82,6 +98,17 @@ export default function BubbleSort(){
     setActiveIndices([]);
     setSorting(false);
   };
+  function enableCustomMode() {
+    setCustomMode(true);
+    setTempValues(Array(size).fill(""));
+    setActiveIndices([]);
+  }
+
+  function handleCustomValueChange(index, value) {
+    const newValues = [...tempValues];
+    newValues[index] = value;
+    setTempValues(newValues);
+  }
   return (
     <div className="text-white w-full fade-delay">
       <h1 className="text-5xl font-bold mb-20">Bubble Sort Visualization</h1>
@@ -108,7 +135,13 @@ export default function BubbleSort(){
         >
           Randomize Array
         </button>
-
+        <button
+          onClick={enableCustomMode}
+          className="bg-purple-500 px-4 py-2 rounded text-white font-semibold cursor-pointer"
+          disabled={sorting || customMode}
+        >
+          Custom Values
+        </button>
         <button
           onClick={bubbleSort}
           className="bg-green-500 px-4 py-2 rounded text-white font-semibold hover:bg-green-600 transition-colors duration-200 cursor-pointer"
@@ -135,18 +168,33 @@ export default function BubbleSort(){
         {array.map((num, idx) => (
           <div key={idx} className="relative flex flex-col items-center">
             {/* Block */}
-            <div
-              className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 ${
-                swappingIndices.includes(idx)
-                  ? "bg-purple-500 scale-125 animate-shake"
-                  : activeIndices.includes(idx)
-                  ? "bg-red-500 scale-110"
-                  : "bg-blue-500"
-              }`}
+            {customMode ? (
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 bg-blue-500`}
+                style={{ width: "4.5rem", height: "4.5rem" }}
               >
-              {num}
-            </div>
-
+                <input
+                  type=""
+                  value={tempValues[idx] || ""}
+                  onChange={(e) => handleCustomValueChange(idx, e.target.value)}
+                  className="w-full h-full bg-transparent border-none text-center text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                  style={{ fontSize: "1.5rem" }}
+                  autoFocus={idx === 0}
+                />
+              </div>
+              ) :
+              <div
+                className={`w-18 h-18 flex items-center justify-center rounded text-white font-bold text-xl text-outline transition-all duration-200 ${
+                  swappingIndices.includes(idx)
+                    ? "bg-purple-500 scale-125 animate-shake"
+                    : activeIndices.includes(idx)
+                    ? "bg-red-500 scale-110"
+                    : "bg-blue-500"
+                }`}
+                >
+                {num}
+              </div>
+            }
 
             {/* Pointer absolutely positioned below */}
             {activeIndices.includes(idx) && (
