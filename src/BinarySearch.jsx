@@ -7,7 +7,7 @@ export default function BinarySearch() {
   const [activeIndices, setActiveIndices] = useState({ start: -1, mid: -1, end: -1 });
   const [foundIndex, setFoundIndex] = useState(-1);
   const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [key, setKey] = useState("");
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState("");

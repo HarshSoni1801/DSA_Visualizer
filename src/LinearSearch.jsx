@@ -7,7 +7,7 @@ export default function LinearSearch() {
   const [activeIndex, setActiveIndex] = useState(-1); // to highlight current comparison
   const [foundIndex, setFoundIndex] = useState(-1); // to mark found element
   const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [key, setKey] = useState("");
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState("");

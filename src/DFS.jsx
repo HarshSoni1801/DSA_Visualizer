@@ -21,7 +21,7 @@ export default function DirectedDFS() {
   const [path, setPath] = useState([]);
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [found, setFound] = useState(false);
   const [error, setError] = useState("");
   const [stackAction, setStackAction] = useState(null);

@@ -7,7 +7,7 @@ export default function SelectionSort() {
   const [activeIndices, setActiveIndices] = useState([]);
   const [swappingIndices,setSwappingIndices]=useState([]);
   const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [minIndex, setMinIndex] = useState(null);
 
   const pausedRef = useRef(paused);

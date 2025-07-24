@@ -6,7 +6,7 @@ export default function BubbleSort(){
   const [sorting, setSorting] = useState(false);
   const [activeIndices, setActiveIndices] = useState([]); // to highlight comparisons
   const [paused,setPaused]=useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [swappingIndices,setSwappingIndices]=useState([]);
   const pausedRef=useRef(paused);
   const speedRef = useRef(speed);

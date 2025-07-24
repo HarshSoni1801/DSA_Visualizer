@@ -6,7 +6,7 @@ export default function InsertionSort() {
   const [sorting, setSorting] = useState(false);
   const [activeIndices, setActiveIndices] = useState([]);
   const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState("Normal");
+  const [speed, setSpeed] = useState("Slow");
   const [keyIndex, setKeyIndex] = useState(null); // New state for key index
   const pausedRef = useRef(paused);
   const speedRef = useRef(speed);
